@@ -1,7 +1,60 @@
 ---
-title: "Project-3"
+title: "Project 3"
 author: "Suyog Dharmadhikari; Bennett McAuley"
 date: "2022-11-02"
 output: html_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(152)
+
+library(tidyverse)
+library(readr)
+```
+
+## Introduction
+
+The goal of this project is to create predictive models and automating the process of generating Markdown reports. The analyses will make use of the [Online News Popularity](https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity) data from the UCI Machine Learning Repository.
+
+This data contains information about articles published by Mashable over a period of two years--specifically the statistics associated with them.
+
+The purpose of this analysis is to use linear regression and ensemble tree-based methods to predict the number of `shares`--our target variable--subset by data channel. For more details about these methods, see the _Modeling_ section.
+
+According to the data description, there are 39,797 observations and 61 variables present. 58 of them are predictors, but using all of them would be inefficient. Instead, the ones that will be used were chosen by what intuitively might influence whether a person shares (plus potential underlying causes), which would influence the sum. Those variables are:
+1. `n_tokens_title` - Number of words in the title
+2. `n_tokens_content` - Number of words in the content
+3. `n_non_stop_words` - Rate of non-stop words in the content
+4. `num_hrefs` - Number of links
+5. `num_self_hrefs` - Number of links to other articles published by Mashable
+6. `num_imgs` - Number of images
+7. `num_videos` - Number of videos
+8. `num_keywords` - Number of keywords in the metadata
+9. `kw_avg_max` - Best keyword (avg. shares)
+-10. `kw_avg_min` - Worst keyword (avg. shares)
+11. `self_reference_avg_shares` - Avg. shares of referenced articles in Mashable
+12. `is_weekend` - Was the article published on the weekend?
+13. `global_subjectivity` - Text subjectivity
+14. `global_sentiment_polarity` - Rate of negative words in the content
+15. `global_rate_positive_words` - Rate of positive words in the content
+16. `global_rate_negative_words` - Rate of negative words in the content
+17. `avg_positive_polarity` - Avg. polarity of positive words
+18. `avg_negative_polarity` - Avg. polarity of negative words
+19. `title_subjectivity` - Title subjectivity
+20. `title_sentiment_polarity` - Title polarity
+
+
+## The Data
+
+For the first iteration of our analysis, we will be using a single source for data channel. In other words, we will subset the data to one data channel here, and later, automate the process across all of the channels.
+
+So, we read in the data and subset it to our chosen variables and the `Tech` data channel:
+
+```{r read data}
+news <- read_csv("OnlineNewsPopularity.csv")
+
+tech.news <- news %>% filter(data_channel_is_tech == 1)
+head(tech.news)
+```
+
+## Summarizations
