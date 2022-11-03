@@ -32,7 +32,7 @@ According to the data description, there are 39,797 observations and 61 variable
 8. `num_keywords` - Number of keywords in the metadata
 9. `kw_avg_max` - Best keyword (avg. shares)
 -10. `kw_avg_min` - Worst keyword (avg. shares)
-11. `self_reference_avg_shares` - Avg. shares of referenced articles in Mashable
+11. `self_reference_avg_sharess` - Avg. shares of referenced articles in Mashable
 12. `is_weekend` - Was the article published on the weekend?
 13. `global_subjectivity` - Text subjectivity
 14. `global_sentiment_polarity` - Rate of negative words in the content
@@ -43,6 +43,13 @@ According to the data description, there are 39,797 observations and 61 variable
 19. `title_subjectivity` - Title subjectivity
 20. `title_sentiment_polarity` - Title polarity
 
+Which we store in a vector for fast retrieval:
+```{r vars}
+news.vars <- c('n_tokens_title','n_tokens_content', 'n_non_stop_words', 'num_hrefs', 'num_self_hrefs',
+               'num_imgs', 'num_videos', 'num_keywords', 'kw_avg_max', 'kw_avg_min',
+               'self_reference_avg_sharess','is_weekend', 'global_subjectivity', 'global_sentiment_polarity', 'global_rate_positive_words',
+               'global_rate_negative_words', 'avg_positive_polarity', 'avg_negative_polarity', 'title_subjectivity', 'title_sentiment_polarity')
+```
 
 ## The Data
 
@@ -53,7 +60,7 @@ So, we read in the data and subset it to our chosen variables and the `Tech` dat
 ```{r read data}
 news <- read_csv("OnlineNewsPopularity.csv")
 
-tech.news <- news %>% filter(data_channel_is_tech == 1)
+tech.news <- news %>% filter(data_channel_is_tech == 1) %>% select(all_of(news.vars), shares) 
 head(tech.news)
 ```
 
