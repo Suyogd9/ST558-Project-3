@@ -21,34 +21,35 @@ This data contains information about articles published by Mashable over a perio
 
 The purpose of this analysis is to use linear regression and ensemble tree-based methods to predict the number of `shares`--our target variable--subset by data channel. For more details about these methods, see the _Modeling_ section.
 
-According to the data description, there are 39,797 observations and 61 variables present. 58 of them are predictors, but using all of them would be inefficient. Instead, the ones that will be used were chosen by what intuitively might influence whether a person shares (plus potential underlying causes), which would influence the sum. Those variables are:
-1. `n_tokens_title` - Number of words in the title
-2. `n_tokens_content` - Number of words in the content
-3. `n_non_stop_words` - Rate of non-stop words in the content
-4. `num_hrefs` - Number of links
-5. `num_self_hrefs` - Number of links to other articles published by Mashable
-6. `num_imgs` - Number of images
-7. `num_videos` - Number of videos
-8. `num_keywords` - Number of keywords in the metadata
-9. `kw_avg_max` - Best keyword (avg. shares)
--10. `kw_avg_min` - Worst keyword (avg. shares)
-11. `self_reference_avg_sharess` - Avg. shares of referenced articles in Mashable
-12. `is_weekend` - Was the article published on the weekend?
-13. `global_subjectivity` - Text subjectivity
-14. `global_sentiment_polarity` - Rate of negative words in the content
-15. `global_rate_positive_words` - Rate of positive words in the content
-16. `global_rate_negative_words` - Rate of negative words in the content
-17. `avg_positive_polarity` - Avg. polarity of positive words
-18. `avg_negative_polarity` - Avg. polarity of negative words
-19. `title_subjectivity` - Title subjectivity
+According to the data description, there are 39,797 observations and 61 variables present. 58 of them are predictors, but using all of them would be inefficient and show glaring redundancies. Instead, the ones that will be used were chosen intuitively--what might encourage a user to share an article and what underlying forces may influence them:
+
+1. `average_token_length` - Average length of the words in the content
+2. `avg_negative_polarity` - Avg. polarity of negative words
+3. `global_rate_positive_words` - Rate of positive words in the content
+4. `global_sentiment_polarity` - Text sentiment polarity
+5. `global_subjectivity` - Text subjectivity
+6. `is_weekend` - Was the article published on the weekend?
+7. `kw_avg_max` - Best keyword (avg. shares)
+8. `kw_avg_min` - Worst Keyword (avg. shares)
+9. `kw_max_max` - Best keyword (max shares)
+10. `kw_min_min` - Worst keyword (min shares)
+11. `n_non_stop_words` - Rate of non-stop words in the content
+12. `n_tokens_content` - Number of words in the content
+13. `n_tokens_title` - Number of words in the title
+14. `n_unique_tokens` - Rate of unique words in the content
+15. `num_hrefs` - Number of links
+16. `num_imgs` - Number of images
+17. `num_self_hrefs` - Number of links to other articles published by Mashable
+18. `num_videos` - Number of videos
+19. `self_reference_avg_shares` - Avg. shares of referenced articles in Mashable
 20. `title_sentiment_polarity` - Title polarity
 
 Which we store in a vector for fast retrieval:
 ```{r vars}
-news.vars <- c('n_tokens_title','n_tokens_content', 'n_non_stop_words', 'num_hrefs', 'num_self_hrefs',
-               'num_imgs', 'num_videos', 'num_keywords', 'kw_avg_max', 'kw_avg_min',
-               'self_reference_avg_sharess','is_weekend', 'global_subjectivity', 'global_sentiment_polarity', 'global_rate_positive_words',
-               'global_rate_negative_words', 'avg_positive_polarity', 'avg_negative_polarity', 'title_subjectivity', 'title_sentiment_polarity')
+news.vars <- c('n_tokens_title', 'n_tokens_content', 'n_non_stop_words', 'num_hrefs', 'num_self_hrefs',
+               'num_imgs', 'num_videos', 'average_token_length', 'kw_max_max', 'kw_min_min',
+               'kw_avg_max', 'kw_avg_min', 'self_reference_avg_sharess','is_weekend', 'global_subjectivity',
+               'global_sentiment_polarity', 'global_rate_positive_words', 'avg_negative_polarity', 'title_subjectivity', 'title_sentiment_polarity')
 ```
 
 ## The Data
