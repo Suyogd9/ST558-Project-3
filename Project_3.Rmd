@@ -52,7 +52,7 @@ Which we store in a vector for fast retrieval:
 news.vars <- c('n_tokens_title', 'n_tokens_content', 'n_non_stop_words', 'num_hrefs', 'num_self_hrefs',
                'num_imgs', 'num_videos', 'average_token_length', 'kw_max_max', 'kw_min_min',
                'kw_avg_max', 'kw_avg_min', 'self_reference_avg_sharess','is_weekend', 'global_subjectivity',
-               'global_sentiment_polarity', 'global_rate_positive_words', 'avg_negative_polarity', 'title_subjectivity', 'title_sentiment_polarity')
+               'global_sentiment_polarity', 'global_rate_positive_words', 'avg_negative_polarity', 'n_unique_tokens', 'title_sentiment_polarity')
 ```
 
 ## The Data
@@ -91,7 +91,15 @@ g <- ggplot(data = tech.news, aes(x = shares))
 
 g + geom_density(adjust = 0.5, alpha = 0.5, aes(fill = is_weekend)) +
   xlim(0, 8000)
+```
 
+The second visual is a scatterplot with a trend line. The number of words in the content is on the x-axis and the rate of unique words on the y-axis. If the data points and trend line show an upward trend, then articles with more words tend to have a larger rate of unique ones. If there is a downward trend, then articles with more words tend to have a smaller rate of unique ones.
+
+```{r scatter}
+p <- ggplot(tech.news, aes(x = n_tokens_content, y = n_unique_tokens))
+
+p + geom_point() +
+  geom_smooth(method = glm, col = "Blue")
 ```
 
 ## Modeling
