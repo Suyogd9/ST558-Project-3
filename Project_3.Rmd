@@ -13,8 +13,8 @@ library(tidyverse)
 library(readr)
 library(caret)
 library(ggplot2)
-library(corrplot)
 library(leaps)
+library(gbm)
 ```
 
 ## Introduction
@@ -224,7 +224,7 @@ summary(BackwardFit)
 
 Boosting centers around the idea of sequential learning--taking information from preceding iterations as a basis for calculating the current iteration. Boosted trees are ensemble tree models consisting of a group of trees that are built in sequence, including errors from previous trees for predictions.
 
-Boosted trees also have a unique characteristic of _slow_ training. This is controlled by $\lambda$, a shrinkage parameter. The two other notable parameters for training a boosted tree are $\B$ (the number of times the algorithm performs its procedure; `n.trees` in R) and $\d$ (the number of splits; `interaction.depth` in R), both of which can be selected with cross-validation.
+Boosted trees also have a unique characteristic of _slow_ training. This is controlled by $\lambda$, a shrinkage parameter. The two other notable parameters for training a boosted tree are $B$ (the number of times the algorithm performs its procedure; `n.trees` in R) and $d$ (the number of splits; `interaction.depth` in R), both of which can be selected with cross-validation.
 
 For regression, the boosting algorithm proceeds as follows:
 
