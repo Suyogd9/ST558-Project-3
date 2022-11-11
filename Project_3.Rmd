@@ -13,7 +13,8 @@ library(tidyverse)
 library(readr)
 library(caret)
 library(ggplot2)
-library(corrplot)
+library(leaps)
+library(gbm)
 ```
 
 ## Introduction
@@ -24,7 +25,7 @@ This data contains information about articles published by Mashable over a perio
 
 The purpose of this analysis is to use linear regression and ensemble tree-based methods to predict the number of `shares`--our target variable--subset by data channel. For more details about these methods, see the _Modeling_ section.
 
-According to the data description, there are 39,797 observations and 61 variables present. 58 of them are predictors, but using all of them would be inefficient and show glaring redundancies. Instead, the ones that will be used were chosen intuitively--what might encourage a user to share an article and what underlying forces may influence them:
+According to the data description, there are 39,797 observations and 61 variables present. 58 of them are predictors, but using all of them would be inefficient and show glaring redundancies. Instead, the ones that will be used were chosen intuitively--what might encourage a user to share an article, what underlying forces may influence them, and what would make for good exploratory analysis:
 
 1. `average_token_length` - Average length of the words in the content
 2. `avg_negative_polarity` - Avg. polarity of negative words
@@ -46,20 +47,31 @@ According to the data description, there are 39,797 observations and 61 variable
 18. `num_videos` - Number of videos
 19. `self_reference_avg_shares` - Avg. shares of referenced articles in Mashable
 20. `title_sentiment_polarity` - Title polarity
+21. `weekday_is_monday` - Was the article published on a Monday?
+22. `weekday_is_tuesday` - Was the article published on a Tuesday?
+23. `weekday_is_wednesday` - Was the article published on a Wednesday?
+24. `weekday_is_thursday` - Was the article published on a Thursday?
+25. `weekday_is_friday` - Was the article published on a Friday?
+26. `weekday_is_saturday` - Was the article published on a Saturday?
+27. `weekday_is_sunday` - Was the article published on a Sunday?
 
 Which we store in a vector for fast retrieval:
+
 ```{r vars}
 news.vars <- c('n_tokens_title', 'n_tokens_content', 'n_non_stop_words', 'num_hrefs', 'num_self_hrefs',
                'num_imgs', 'num_videos', 'average_token_length', 'kw_max_max', 'kw_min_min',
                'kw_avg_max', 'kw_avg_min', 'self_reference_avg_sharess','is_weekend', 'global_subjectivity',
-               'global_sentiment_polarity', 'global_rate_positive_words', 'avg_negative_polarity', 'n_unique_tokens', 'title_sentiment_polarity')
+               'global_sentiment_polarity', 'global_rate_positive_words', 'avg_negative_polarity', 'n_unique_tokens', 'title_sentiment_polarity',
+               'weekday_is_sunday', 'weekday_is_monday', 'weekday_is_tuesday', 'weekday_is_wednesday', 'weekday_is_thursday',
+               'weekday_is_friday', 'weekday_is_saturday'
+               )
 ```
 
 ## The Data
 
 For the first iteration of our analysis, we will be using a single source for data channel. In other words, we will subset the data to one data channel here, and later, automate the process across all of the channels.
 
-So, we read in the data and subset it to our chosen variables (`is_weekend` converted into factor) and the `Tech` data channel:
+So, we read in the data and subset it to the `Tech` data channel and convert `is_weekend` into a binary factor:
 
 ```{r read data}
 news <- read_csv("OnlineNewsPopularity.csv")
@@ -70,6 +82,7 @@ tech.news <- news %>% filter(data_channel_is_tech == 1) %>%
 
 head(tech.news)
 ```
+
 ## Summarizations
 Now that our data has been manipulated and filtered, we can perform a simple EDA.
 
@@ -94,14 +107,30 @@ tibble(var = 'shares', min = s[1], max = s[6], mean = s[3], stddev = sd(tech.new
 ```
 If the maximum is tremendously larger in scale than the mean, then it is very likely an outlier. If the standard deviation is larger than the mean, then the number of shares varies greatly. Furthermore, the higher it is, the more disperse they are from the mean. The inverse also applies for a smaller standard deviation (i.e. the smaller, the less disperse).
 
+It would also be good to know relationships between some of the variables present--and not just to `shares`. Observe the following correlation matrix of variables related to content sentiment. A value of 0 indicates no correlation and 1 indicates perfect correlation. The closer a value is to 1(+/-), the stronger the relationship is. The closer to 0, the weaker.
+
+```{r corr}
+c <- tech.news %>%
+  select(avg_negative_polarity,
+         global_rate_positive_words,
+         global_sentiment_polarity,
+         title_sentiment_polarity,
+         global_subjectivity,
+         shares)
+
+round(cor(c),2)
+```
+
+
 ### Plots
-For visual analysis, we first construct a density plot to compare the distribution of `shares` between the weekend (`is_weekend = 1`) and weekdays (`is_weekend = 0`). Observe the patterns generated for similarities and/or differences.
+For visual analysis, we first construct a density plot to compare the densities of `shares` between the weekend (`is_weekend = 1`) and weekdays (`is_weekend = 0`). Observe the patterns generated for similarities and/or differences.
 
 ```{r density}
 g <- ggplot(data = tech.news, aes(x = shares))
 
 g + geom_density(adjust = 0.5, alpha = 0.5, aes(fill = is_weekend)) +
-  xlim(0, 8000)
+  xlim(0, 10000) +
+  scale_y_continuous(labels = scales::comma)
 ```
 
 The second visual is a scatterplot with a trend line. The number of words in the content is on the x-axis and the rate of unique words on the y-axis. If the data points and trend line show an upward trend, then articles with more words tend to have a larger rate of unique ones. If there is a downward trend, then articles with more words tend to have a smaller rate of unique ones.
@@ -113,6 +142,39 @@ p + geom_point() +
   geom_smooth(method = glm, col = "Blue")
 ```
 
+This subsequent bar plot shows a comparison between the total number of articles published on each day of the week and the total shares of those articles. Observe any interestingly sized columns that one might think would be higher or lower than others. Articles published on which day tend to get shared the most? Which one gets the least?
+
+```{r box}
+
+plt <- tech.news %>% pivot_longer(cols = starts_with("weekday_is_"),
+               names_to = "day",
+               names_prefix = "weekday_is_",
+               names_transform = as.factor,
+               values_to = "count") %>%
+  filter(count == 1) %>%
+  select(-count, -starts_with("weekday_is_"))
+
+#Reordering days
+plt$day <- factor(plt$day,
+    levels = c("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"))
+
+
+plt <- plt %>%
+  select(day, shares) %>%
+  group_by(day) %>%
+  summarise(articles = n(), shares = sum(shares))
+
+plt <- reshape2::melt(plt, id.vars = c("day"))
+
+p <- ggplot(plt, aes(x = day, y = value, fill = day))
+
+p + geom_col() +
+  facet_wrap(vars(variable), scales = "free") +
+  scale_y_continuous(labels = scales::comma) +
+  guides(x = guide_axis(angle = 45), fill = "none")
+
+```
+
 ## Modeling
 The goal now is to create models for predicting the number of `shares` using linear regression and ensemble trees. Before that, the data is split into a training (70%) and test (30%) set.
 
@@ -121,4 +183,85 @@ i <- createDataPartition(tech.news[[1]], p = 0.75, list = FALSE)
 
 train <- tech.news[i,]
 test <- tech.news[-i,]
+```
+
+### Linear Regression
+
+[description and first model here]
+
+This second linear regression model is fit using variables chosen from backwards stepwise selection.
+
+The `regsubsets` function is called, and the summary is returned to grab the models of $n$ terms that have the optimal values for $R^2$, Mallows' Cp, and BIC. As performance will vary, the mode value between the three is chosen as the 'best'.
+
+```{r regression 2}
+backVars <- regsubsets(shares ~ ., train, method = "backward")
+
+backSumm <- summary(backVars, all.best = FALSE)
+
+met <- c(R2 = which.max(backSumm$rsq), 
+     Cp = which.min(backSumm$cp),
+     BIC = which.min(backSumm$bic)
+)
+
+M <- which.max(tabulate(met))
+```
+
+The most frequent number is `r M``. The variables present in this size model are:
+
+```{r coef return}
+coef(backVars, M)
+```
+
+Now, the model can be trained. The variables are scaled to account for the vastly different magnitudes between them, and to prevent any extreme coefficient values because of this.
+
+```{r reg train}
+BackwardFit <- train(shares ~ n_tokens_content + num_hrefs + num_self_hrefs + num_imgs +
+                     num_videos + is_weekend + global_rate_positive_words + weekday_is_wednesday,
+                    data = train,
+                    method = "lm",
+                    metric = "Rsquared",
+                    preProcess = c("scale"),
+                    trControl = trainControl(method = "cv", number = 10))
+
+summary(BackwardFit)
+
+```
+
+### Random Forest
+
+...
+
+### Boosted Tree Model
+
+Boosting centers around the idea of sequential learning--taking information from preceding iterations as a basis for calculating the current iteration. Boosted trees are ensemble tree models consisting of a group of trees that are built in sequence, including errors from previous trees for predictions.
+
+Boosted trees also have a unique characteristic of _slow_ training. This is controlled by $\lambda$, a shrinkage parameter. The two other notable parameters for training a boosted tree are $B$ (the number of times the algorithm performs its procedure; `n.trees` in R) and $d$ (the number of splits; `interaction.depth` in R), both of which can be selected with cross-validation.
+
+For regression, the boosting algorithm proceeds as follows:
+
+1. The predictions are initialized to 0--$\hat{y}(x)=0$
+2. The residuals between observed and predicted values are calculated
+3. A tree with $d$ splits and $d+1$ terminal nodes is fit using the residuals as the response--denoted by $\hat{y}^b(x)$
+4. The overall prediction is updated by recursively adding these pseudo-responses--$\hat{y}(x) +=\lambda\hat{y}^b(x)$ 
+5. Residuals for new predictions are updated
+6. Repeat $B$ times
+
+This model is fit using `cv = 10`, and the `train` function will determine the optimal values of the parameters for us.
+
+```{r boost train, results = 'hide', cache = TRUE}
+#Output for this chunk is hidden as it is rather long and does not provide information needed for reporting
+boostFit <- train(shares ~ .,
+              method = "gbm",
+              data = train,
+              trControl = trainControl(method = "cv", number = 10))
+```
+
+During training, the optimal values for the tuning parameters were found to be:
+```{r boost param}
+boostFit$bestTune
+```
+
+Since coefficients aren't interpretable for boosted trees, the calculation of variable importance for the final model is shown instead, in descending order:
+```{r boost vars}
+varImp(boostFit$finalModel) %>% arrange(desc(Overall))
 ```
