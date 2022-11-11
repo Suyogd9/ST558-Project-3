@@ -81,6 +81,17 @@ s <- summary(tech.news$shares)
 
 tibble(var = 'shares', min = s[1], max = s[6], mean = s[3], stddev = sd(tech.news$shares))
 ```
+
+```{r sumData, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
+
+  countNonStopWords <- tech.news %>% 
+  group_by(global_subjectivity) %>%
+  summarise(total_count=n(),
+            .groups = 'drop')
+  
+  countNonStopWords
+  
+```
 If the maximum is tremendously larger in scale than the mean, then it is very likely an outlier. If the standard deviation is larger than the mean, then the number of shares varies greatly. Furthermore, the higher it is, the more disperse they are from the mean. The inverse also applies for a smaller standard deviation (i.e. the smaller, the less disperse).
 
 ### Plots
