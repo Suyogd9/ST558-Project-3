@@ -15,6 +15,7 @@ library(caret)
 library(ggplot2)
 library(leaps)
 library(gbm)
+library(ggcorrplot)
 ```
 
 ## Introduction
@@ -114,7 +115,7 @@ round(cor(c),2)
 The new variable **popularity** is set up so that news is considered `popular` if it receives more shares than the median shares, else it is considered `unpopular`.`table()` gives details about **count** of popular and unpopular news.
 ```{r tablePopCount, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
 
-  tech.news$popularity <- ifelse(tech.news$shares < median(tech.news$shares),
+  tech.news$popularity <- ifelse(tech.news$shares < mean(tech.news$shares),
   "Unpopular", "Popular"
 )
 
@@ -179,6 +180,35 @@ p + geom_col() +
   scale_y_continuous(labels = scales::comma) +
   guides(x = guide_axis(angle = 45), fill = "none")
 
+```
+The code chunk below, tells us about the number of shares of a particular published news with number of images in the published news.It also tells us about the popularity of the news published with images. 
+```{r barPlot, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
+
+  ggplot(tech.news, aes(fill= popularity, y=shares, x=num_imgs)) +
+  geom_bar(position='dodge', stat='identity',  width = 0.98) +
+  ggtitle('Relation between number of images and shares') +
+  xlab('Number of images in the news published') +
+  ylab('Shares') +
+  ylim(0, 100000)
+```
+Correlation plots are used to find out the **correlation** between two variables in the given data set. In the code chunk below, we have used `ggcorrplt()` to plot the correlation between all the variables in the data set and identify the most **correlated variables**. A **violet** color circle shows there is **negative** correlation between the two respective variables and a **dark orange** color is **positive** correlation between two variables. 
+```{r corrPlot, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
+   
+    corr <- cor(select_if(tech.news, is.numeric))
+    ggcorrplot(corr, 
+                method = "circle",
+                type = "lower",
+                outline.color = "black",
+                 lab_size = 6)
+
+```
+In the code chunk a scatter plot with a trend line. The number of words in the content is on the x-axis and the number of shares on the y-axis. If the data points and trend line show an upward trend, then articles with more words tend to have more number of shares. If there is a downward trend, then articles with more words tend to have a smaller number of shares.
+```{r scattPlot, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
+   
+  ggplot(tech.news, aes(y=shares, x=n_tokens_content)) + 
+    geom_point(aes(color=popularity)) +
+    geom_smooth() + 
+    ylim(0, 100000)
 ```
 
 ## Modeling
