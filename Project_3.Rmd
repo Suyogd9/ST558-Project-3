@@ -312,7 +312,8 @@ summary(BackwardFit)
 ```
 
 ### Random Forest
-
+**Random forest** uses same idea as bagging tree models. That means it is a bootstrap aggregation method, but only difference is that in random forest we **randomly select subset of predictors** instead of using all the predictors. This is because, if a really strong predictor exists, **every** bootstrap tree will probably use it for the **first** split. This will result in making bagged trees predictions more **correlated** and **variance** will be **large** in aggregation. Hence, in random forest we avoid this limitation by using a random subset of predictors for each bootstrap sample/tree fit. 
+In the code chunk below, `Caret` package was used to train the rf forest model and the evaluation metric used for the fit is `Rsquared`. We have tuned the model by using tuning parameter `mtry` ad used **5 folds cross validation** for finding best fit.
 ```{r randomForestModel, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
 
 set.seed(123)
@@ -330,6 +331,8 @@ rfFit <- train(modelFormula,
                       trControl=control)
 
 rfFit$bestTune
+
+varImp(rfFit$finalModel) %>% arrange(desc(Overall))
 
 ```
 
