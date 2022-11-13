@@ -272,7 +272,7 @@ forwardFit <- train(modelFormula,
 summary(forwardFit)
 
 ```
-```{r regressModelPredict, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
+```{r regressModelPredictFwd, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
 # convert categorical variables into numeric variables i.e one hot encoding
 dummies <- dummyVars(shares ~ is_weekend+popularity, data = test)
 testDF <- as_tibble(predict(dummies, newdata = test)) %>%
@@ -280,9 +280,9 @@ testDF <- as_tibble(predict(dummies, newdata = test)) %>%
 
   predLR <- predict(forwardFit,newdata = testDF)
   
-  predResults <- postResample(predLR,obs = testDF$shares)
+  predResultsFwd <- postResample(predLR,obs = testDF$shares)
   
-  predResults
+  predResultsFwd
   
 ```
 
@@ -324,6 +324,17 @@ summary(BackwardFit)
 
 ```
 
+```{r regressModelPredictBck, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
+# convert categorical variables into numeric variables i.e one hot encoding
+
+  predLRBck <- predict(BackwardFit,newdata = test)
+  
+  predResultsBck <- postResample(predLRBck,obs = test$shares)
+  
+  predResultsBck
+  
+```
+
 ### Random Forest
 **Random forest** uses same idea as bagging tree models. That means it is a bootstrap aggregation method, but only difference is that in random forest we **randomly select subset of predictors** instead of using all the predictors. This is because, if a really strong predictor exists, **every** bootstrap tree will probably use it for the **first** split. This will result in making bagged trees predictions more **correlated** and **variance** will be **large** in aggregation. Hence, in random forest we avoid this limitation by using a random subset of predictors for each bootstrap sample/tree fit. 
 In the code chunk below, `Caret` package was used to train the rf forest model and the evaluation metric used for the fit is `Rsquared`. We have tuned the model by using tuning parameter `mtry` ad used **5 folds cross validation** for finding best fit.
@@ -357,9 +368,9 @@ testDF <- as_tibble(predict(dummies, newdata = test)) %>%
 
   predRF <- predict(rfFit,newdata = testDF)
   
-  predResults <- postResample(predRF,obs = testDF$shares)
+  predResultsRF <- postResample(predRF,obs = testDF$shares)
   
-  predResults
+  predResultsRF
   
 ```
 ### Boosted Tree Model
@@ -395,4 +406,29 @@ boostFit$bestTune
 Since coefficients aren't interpretable for boosted trees, the calculation of variable importance for the final model is shown instead, in descending order:
 ```{r boost vars}
 varImp(boostFit$finalModel) %>% arrange(desc(Overall))
+```
+
+```{r boostModelPredict, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
+# convert categorical variables into numeric variables i.e one hot encoding
+  predBoost <- predict(boostFit,newdata = test)
+  
+  predResultsBoost <- postResample(predBoost,obs = test$shares)
+  
+  predResultsBoost
+  
+```
+
+```{r modelComparison, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
+
+rmseModels <- c(predResultsFwd[[1]],predResultsBck[[1]],predResultsRF[[1]],predResultsBoost[[1]])
+
+modelName <- c("Linear regression with forward selection","Linear regression with backward selection","Random forest","Boosted tree")
+
+resultsDF <- data.frame(modelName,rmseModels)
+
+
+bestModelName <- filter(resultsDF,rmseModels == min(rmseModels))[[1]]
+
+paste0("The best model for the selected data channel is : ", bestModelName)
+
 ```
