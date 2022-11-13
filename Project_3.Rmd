@@ -357,7 +357,7 @@ testDF <- as_tibble(predict(dummies, newdata = test)) %>%
 
   predRF <- predict(rfFit,newdata = testDF)
   
-  predResults <- postResample(predLR,obs = testDF$shares)
+  predResults <- postResample(predRF,obs = testDF$shares)
   
   predResults
   

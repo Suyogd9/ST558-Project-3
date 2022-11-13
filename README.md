@@ -1,6 +1,6 @@
-# "tl;dr the code" Summary
+## Project Summary
 
-The purpose of this repo is to showcase the process and results of automating Markdown reports containing predictive analysis about shares from articles published by Mashable. There are six categories of articles within the data, each of have their own report. They can be accessed via the links below.
+The purpose of this repo is to showcase the process and results of automating Markdown reports containing predictive analysis about shares from articles published by Mashable. There are six categories of articles within the data, each of have their own report. They can be accessed via the links below, under _Generated Reports_.
 
 For the code to perform as expected, the following R packages were used and should be installed:
 - [Tidyverse](https://www.tidyverse.org/) - For intuitive data manipulation and analysis; also enables use of its sub-packages, the following of which were used:
@@ -9,7 +9,7 @@ For the code to perform as expected, the following R packages were used and shou
 - [leaps](https://www.rdocumentation.org/packages/leaps/versions/3.1/topics/leaps) - For selection of the best subset of predictor variables 
 - [gbm](https://github.com/gbm-developers/gbm#readme) - Needed for `caret` training to recognize `gbm` method
 
-Generated reports:
+Generated Reports:
 - Lifestyle
 - Entertainment
 - Business

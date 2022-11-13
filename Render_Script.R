@@ -1,7 +1,8 @@
-##THIS FILE IS FOR GENERATING REPORTS ONLY##
+##THIS SCRIPT IS FOR GENERATING REPORTS ONLY--SEE Project_3.Rmd FOR SOURCE CODE##
 
 #Defining a function to translate the provided channel value to a proper title
 getTitle <- function(channel) {
+  
   t <- switch(channel,
               'lifestyle' = "Lifestyle",
               'entertainment' = "Entertainment",
@@ -9,6 +10,7 @@ getTitle <- function(channel) {
               'socmed' = "Social Media",
               'tech' = "Technology",
               'world' = "World")
+  
   return(t)
 }
 
@@ -21,9 +23,29 @@ renderReport <- function(c) {
   rmarkdown::render("Project_3.Rmd",
                     params = list(channel = c,
                                   rep_title = title),
-                    output_file = paste0(title, "Analysis")
-  )
+                    output_file = paste0(title, "Analysis"))
   
 }
 
-renderReport('world')
+#Defining a function run this script for either all of the channels (returns six reports)
+#OR for a single specified channel (returns one report)
+runScript <- function(mode) {
+  
+  var_opt <- c('lifestyle', 'entertainment', 'bus', 'socmed', 'tech', 'world')
+  
+  if (mode == 'all') {
+    for (i in var_opt) {
+      renderReport(i)
+    }
+  } 
+  
+  else if (mode %in% var_opt) {
+    renderReport(mode)
+  } 
+ 
+   else stop("Invalid input; try again")
+  
+}
+
+#Calling script function to generate all reports
+runScript('all')
