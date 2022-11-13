@@ -121,17 +121,17 @@ round(cor(c),2)
 The new variable **popularity** is set up so that news is considered `popular` if it receives more shares than the median shares, else it is considered `unpopular`.`table()` gives details about **count** of popular and unpopular news.
 ```{r tablePopCount, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
 
-  tech.news$popularity <- ifelse(tech.news$shares < mean(tech.news$shares),
+  news.tbl$popularity <- ifelse(news.tbl$shares < mean(news.tbl$shares),
   "Unpopular", "Popular"
 )
 
-table(tech.news$popularity)
+table(news.tbl$popularity)
   
 ```
 The contingency table below depicts the relationship between the **popularity** of a news channel and whether or not it was **published on the weekend**. It informs us whether or not popular news was published over the weekend. Whether or not unpopular news was published over the weekend.
 ```{r conTable, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
 
-   table(tech.news$popularity,tech.news$is_weekend)
+   table(news.tbl$popularity,news.tbl$is_weekend)
 
 ```
 
@@ -190,7 +190,7 @@ p + geom_col() +
 The code chunk below, tells us about the number of shares of a particular published news with number of images in the published news.It also tells us about the popularity of the news published with images. 
 ```{r barPlot, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
 
-  ggplot(tech.news, aes(fill= popularity, y=shares, x=num_imgs)) +
+  ggplot(news.tbl, aes(fill= popularity, y=shares, x=num_imgs)) +
   geom_bar(position='dodge', stat='identity',  width = 0.98) +
   ggtitle('Relation between number of images and shares') +
   xlab('Number of images in the news published') +
@@ -200,7 +200,7 @@ The code chunk below, tells us about the number of shares of a particular publis
 Correlation plots are used to find out the **correlation** between two variables in the given data set. In the code chunk below, we have used `ggcorrplt()` to plot the correlation between all the variables in the data set and identify the most **correlated variables**. A **violet** color circle shows there is **negative** correlation between the two respective variables and a **dark orange** color is **positive** correlation between two variables. 
 ```{r corrPlot, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
    
-    corr <- cor(select_if(tech.news, is.numeric))
+    corr <- cor(select_if(news.tbl, is.numeric))
     ggcorrplot(corr, 
                 method = "circle",
                 type = "lower",
@@ -211,7 +211,7 @@ Correlation plots are used to find out the **correlation** between two variables
 In the code chunk a scatter plot with a trend line. The number of words in the content is on the x-axis and the number of shares on the y-axis. If the data points and trend line show an upward trend, then articles with more words tend to have more number of shares. If there is a downward trend, then articles with more words tend to have a smaller number of shares.
 ```{r scattPlot, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
    
-  ggplot(tech.news, aes(y=shares, x=n_tokens_content)) + 
+  ggplot(news.tbl, aes(y=shares, x=n_tokens_content)) + 
     geom_point(aes(color=popularity)) +
     geom_smooth() + 
     ylim(0, 100000)
@@ -313,7 +313,23 @@ summary(BackwardFit)
 
 ### Random Forest
 
-...
+```{r randomForestModel, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
+
+set.seed(123)
+
+#5 folds cross validation
+control <- trainControl(method='cv', 
+                        number=5)
+
+tunegrid <- data.frame(mtry = 1:9)
+rfFit <- train(modelFormula, 
+                      data=trainDF, 
+                      method='rf', 
+                      metric='Rsquared', 
+                      tuneGrid=tunegrid, 
+                      trControl=control)
+summary(rfFit)
+```
 
 ### Boosted Tree Model
 
