@@ -11,13 +11,11 @@ params:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 set.seed(152)
 
 library(tidyverse)
-library(readr)
 library(caret)
-library(ggplot2)
 library(leaps)
 library(gbm)
 library(ggcorrplot)
@@ -64,12 +62,13 @@ According to the data description, there are 39,797 observations and 61 variable
 Which we store in a vector for fast retrieval:
 
 ```{r vars}
-news.vars <- c('n_tokens_title', 'n_tokens_content', 'n_non_stop_words', 'num_hrefs', 'num_self_hrefs',
-               'num_imgs', 'num_videos', 'average_token_length', 'kw_max_max', 'kw_min_min',
-               'kw_avg_max', 'kw_avg_min', 'self_reference_avg_sharess','is_weekend', 'global_subjectivity',
-               'global_sentiment_polarity', 'global_rate_positive_words', 'avg_negative_polarity', 'n_unique_tokens', 'title_sentiment_polarity',
-               'weekday_is_sunday', 'weekday_is_monday', 'weekday_is_tuesday', 'weekday_is_wednesday', 'weekday_is_thursday',
-               'weekday_is_friday', 'weekday_is_saturday'
+news.vars <- c('n_tokens_title', 'n_tokens_content', 'n_non_stop_words', 'num_hrefs',
+               'num_self_hrefs', 'num_imgs', 'num_videos', 'average_token_length',
+               'kw_max_max', 'kw_min_min', 'kw_avg_max', 'kw_avg_min',
+               'self_reference_avg_sharess','is_weekend', 'global_subjectivity', 'global_sentiment_polarity',
+               'global_rate_positive_words', 'avg_negative_polarity', 'n_unique_tokens', 'title_sentiment_polarity',
+               'weekday_is_sunday', 'weekday_is_monday', 'weekday_is_tuesday', 'weekday_is_wednesday',
+               'weekday_is_thursday', 'weekday_is_friday', 'weekday_is_saturday'
                )
 ```
 
@@ -91,9 +90,11 @@ head(news.tbl)
 ```
 
 ## Summarizations
+
 Now that our data has been manipulated and filtered, we can perform a simple EDA.
 
 ### Summary Statistics
+
 First and foremost, we want to know what range of values we might expect when predicting for `shares`. The following table shows basic summary statistics about the variable:
 
 ```{r five_sum}
@@ -111,13 +112,11 @@ c <- news.tbl %>%
   select(avg_negative_polarity,
          global_rate_positive_words,
          global_sentiment_polarity,
-         title_sentiment_polarity,
          global_subjectivity,
          shares)
 
 round(cor(c),2)
 ```
-
 The new variable **popularity** is set up so that news is considered `popular` if it receives more shares than the median shares, else it is considered `unpopular`.`table()` gives details about **count** of popular and unpopular news.
 ```{r tablePopCount, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
 
@@ -136,6 +135,7 @@ The contingency table below depicts the relationship between the **popularity** 
 ```
 
 ### Plots
+
 For visual analysis, we first construct a density plot to compare the densities of `shares` between the weekend (`is_weekend = 1`) and weekdays (`is_weekend = 0`). Observe the patterns generated for similarities and/or differences.
 
 ```{r density}
@@ -143,7 +143,11 @@ g <- ggplot(data = news.tbl, aes(x = shares))
 
 g + geom_density(adjust = 0.5, alpha = 0.5, aes(fill = is_weekend)) +
   xlim(0, 10000) +
-  scale_y_continuous(labels = scales::comma)
+  scale_y_continuous(labels = scales::comma) +
+  labs(title = "Density Plot for Shares",
+       subtitle = paste("channel = ", params$channel),
+       x = "# of Shares",
+       y = "Density")
 ```
 
 The second visual is a scatterplot with a trend line. The number of words in the content is on the x-axis and the rate of unique words on the y-axis. If the data points and trend line show an upward trend, then articles with more words tend to have a larger rate of unique ones. If there is a downward trend, then articles with more words tend to have a smaller rate of unique ones.
@@ -152,7 +156,11 @@ The second visual is a scatterplot with a trend line. The number of words in the
 p <- ggplot(news.tbl, aes(x = n_tokens_content, y = n_unique_tokens))
 
 p + geom_point() +
-  geom_smooth(method = glm, col = "Blue")
+  geom_smooth(method = glm, col = "Blue") +
+  labs(title = "Scatterplot for n_tokens_content vs n_unique_tokens",
+       subtitle = paste("channel = ", params$channel),
+       x = "# of Words in Article",
+       y = "Rate of Unique Words in Article")
 ```
 
 This subsequent bar plot shows a comparison between the total number of articles published on each day of the week and the total shares of those articles. Observe any interestingly sized columns that one might think would be higher or lower than others. Articles published on which day tend to get shared the most? Which one gets the least?
@@ -184,7 +192,11 @@ p <- ggplot(plt, aes(x = day, y = value, fill = day))
 p + geom_col() +
   facet_wrap(vars(variable), scales = "free") +
   scale_y_continuous(labels = scales::comma) +
-  guides(x = guide_axis(angle = 45), fill = "none")
+  guides(x = guide_axis(angle = 45), fill = "none") +
+  labs(title = "Total # of Articles vs Total # of Shares per Publishing Day",
+       subtitle = paste("channel = ", params$channel),
+       x = "Day",
+       y = '')
 
 ```
 The code chunk below, tells us about the number of shares of a particular published news with number of images in the published news.It also tells us about the popularity of the news published with images. 
@@ -218,6 +230,7 @@ In the code chunk a scatter plot with a trend line. The number of words in the c
 ```
 
 ## Modeling
+
 The goal now is to create models for predicting the number of `shares` using linear regression and ensemble trees. Before that, the data is split into a training (70%) and test (30%) set.
 
 ```{r split}
@@ -229,6 +242,7 @@ test <- news.tbl[-i,]
 
 ### Linear Regression
 
+<<<<<<< HEAD
 The linear regression model is fit using variables chosen from forward stepwise selection.The leaps library's `regsubsets()` function performs best subset selection by identifying the best model with a given number of predictors, where best is quantified using **RSS**. The syntax is **identical** to that of `lm()`. The summary() command returns the best set of variables for each model size. In the code chunk below, we find the best predictors subset, then **r^2** value is used to determine the number of predictors that can give **best** model results. Then we create a formula that can be used to train the model by using `as.formula()` and `paste0()` in R.
 
 ```{r regressionFormula1, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
@@ -285,6 +299,14 @@ testDF <- as_tibble(predict(dummies, newdata = test)) %>%
   predResultsFwd
   
 ```
+=======
+[description]
+
+#### _Model #1_
+
+
+#### _Model #2_
+>>>>>>> 9a91775 (-Cleaned up source code; added sections for person one to add content)
 
 This second linear regression model is fit using variables chosen from backwards stepwise selection.
 
@@ -402,15 +424,18 @@ boostFit <- train(shares ~ .,
 ```
 
 During training, the optimal values for the tuning parameters were found to be:
+
 ```{r boost param}
 boostFit$bestTune
 ```
 
 Since coefficients aren't interpretable for boosted trees, the calculation of variable importance for the final model is shown instead, in descending order:
+
 ```{r boost vars}
 varImp(boostFit$finalModel) %>% arrange(desc(Overall))
 ```
 
+<<<<<<< HEAD
 ```{r boostModelPredict, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
 # convert categorical variables into numeric variables i.e one hot encoding
   predBoost <- predict(boostFit,newdata = test)
@@ -435,3 +460,6 @@ bestModelName <- filter(resultsDF,rmseModels == min(rmseModels))[[1]]
 paste0("The best model for the selected data channel is : ", bestModelName)
 
 ```
+=======
+## Model Comparison
+>>>>>>> 9a91775 (-Cleaned up source code; added sections for person one to add content)
