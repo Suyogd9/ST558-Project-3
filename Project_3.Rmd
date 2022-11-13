@@ -82,7 +82,7 @@ So, we read in the data, perform the filter, and convert `is_weekend` into a bin
 ```{r read data}
 news <- read_csv("OnlineNewsPopularity.csv")
 fltr <- paste0("data_channel_is_", params$channel)
-
+# fltr <- "data_channel_is_tech"
 news.tbl <- news %>% filter(get(fltr) == 1) %>% 
   select(all_of(news.vars), shares) %>%
   mutate(is_weekend = as.factor(is_weekend))
@@ -328,7 +328,9 @@ rfFit <- train(modelFormula,
                       metric='Rsquared', 
                       tuneGrid=tunegrid, 
                       trControl=control)
-summary(rfFit)
+
+rfFit$bestTune
+
 ```
 
 ### Boosted Tree Model
