@@ -1,8 +1,13 @@
 ---
-title: "Project 3"
+title: 'ST 558 Project 3: `r params$rep_title` Analysis Report'
 author: "Suyog Dharmadhikari; Bennett McAuley"
 date: "2022-11-02"
-output: html_document
+output: 
+  html_document:
+    toc: true
+params:
+  channel: NULL
+  rep_title: ''
 ---
 
 ```{r setup, include=FALSE}
@@ -19,7 +24,7 @@ library(gbm)
 
 ## Introduction
 
-The goal of this project is to create predictive models and automating the process of generating Markdown reports. The analyses will make use of the [Online News Popularity](https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity) data from the UCI Machine Learning Repository.
+The goal of this report is to create and compare predictive models using [Online News Popularity](https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity) data from the UCI Machine Learning Repository.
 
 This data contains information about articles published by Mashable over a period of two years--specifically the statistics associated with them.
 
@@ -69,18 +74,19 @@ news.vars <- c('n_tokens_title', 'n_tokens_content', 'n_non_stop_words', 'num_hr
 
 ## The Data
 
-For the first iteration of our analysis, we will be using a single source for data channel. In other words, we will subset the data to one data channel here, and later, automate the process across all of the channels.
+For this analysis, we will consider a single source for the data channel. In other words, we subset the data to the _`r params$rep_title`_ channel.
 
-So, we read in the data and subset it to the `Tech` data channel and convert `is_weekend` into a binary factor:
+So, we read in the data, perform the filter, and convert `is_weekend` into a binary factor:
 
 ```{r read data}
 news <- read_csv("OnlineNewsPopularity.csv")
+fltr <- paste0("data_channel_is_", params$channel)
 
-tech.news <- news %>% filter(data_channel_is_tech == 1) %>% 
+news.tbl <- news %>% filter(get(fltr) == 1) %>% 
   select(all_of(news.vars), shares) %>%
   mutate(is_weekend = as.factor(is_weekend))
 
-head(tech.news)
+head(news.tbl)
 ```
 
 ## Summarizations
@@ -90,16 +96,16 @@ Now that our data has been manipulated and filtered, we can perform a simple EDA
 First and foremost, we want to know what range of values we might expect when predicting for `shares`. The following table shows basic summary statistics about the variable:
 
 ```{r five_sum}
-s <- summary(tech.news$shares)
+s <- summary(news.tbl$shares)
 
-tibble(var = 'shares', min = s[1], max = s[6], mean = s[3], stddev = sd(tech.news$shares))
+tibble(var = 'shares', min = s[1], max = s[6], mean = s[3], stddev = sd(news.tbl$shares))
 ```
 If the maximum is tremendously larger in scale than the mean, then it is very likely an outlier. If the standard deviation is larger than the mean, then the number of shares varies greatly. Furthermore, the higher it is, the more disperse they are from the mean. The inverse also applies for a smaller standard deviation (i.e. the smaller, the less disperse).
 
 It would also be good to know relationships between some of the variables present--and not just to `shares`. Observe the following correlation matrix of variables related to content sentiment. A value of 0 indicates no correlation and 1 indicates perfect correlation. The closer a value is to 1(+/-), the stronger the relationship is. The closer to 0, the weaker.
 
 ```{r corr}
-c <- tech.news %>%
+c <- news.tbl %>%
   select(avg_negative_polarity,
          global_rate_positive_words,
          global_sentiment_polarity,
@@ -115,7 +121,7 @@ round(cor(c),2)
 For visual analysis, we first construct a density plot to compare the densities of `shares` between the weekend (`is_weekend = 1`) and weekdays (`is_weekend = 0`). Observe the patterns generated for similarities and/or differences.
 
 ```{r density}
-g <- ggplot(data = tech.news, aes(x = shares))
+g <- ggplot(data = news.tbl, aes(x = shares))
 
 g + geom_density(adjust = 0.5, alpha = 0.5, aes(fill = is_weekend)) +
   xlim(0, 10000) +
@@ -125,7 +131,7 @@ g + geom_density(adjust = 0.5, alpha = 0.5, aes(fill = is_weekend)) +
 The second visual is a scatterplot with a trend line. The number of words in the content is on the x-axis and the rate of unique words on the y-axis. If the data points and trend line show an upward trend, then articles with more words tend to have a larger rate of unique ones. If there is a downward trend, then articles with more words tend to have a smaller rate of unique ones.
 
 ```{r scatter}
-p <- ggplot(tech.news, aes(x = n_tokens_content, y = n_unique_tokens))
+p <- ggplot(news.tbl, aes(x = n_tokens_content, y = n_unique_tokens))
 
 p + geom_point() +
   geom_smooth(method = glm, col = "Blue")
@@ -135,7 +141,7 @@ This subsequent bar plot shows a comparison between the total number of articles
 
 ```{r box}
 
-plt <- tech.news %>% pivot_longer(cols = starts_with("weekday_is_"),
+plt <- news.tbl %>% pivot_longer(cols = starts_with("weekday_is_"),
                names_to = "day",
                names_prefix = "weekday_is_",
                names_transform = as.factor,
@@ -168,10 +174,10 @@ p + geom_col() +
 The goal now is to create models for predicting the number of `shares` using linear regression and ensemble trees. Before that, the data is split into a training (70%) and test (30%) set.
 
 ```{r split}
-i <- createDataPartition(tech.news[[1]], p = 0.75, list = FALSE)
+i <- createDataPartition(news.tbl[[1]], p = 0.7, list = FALSE)
 
-train <- tech.news[i,]
-test <- tech.news[-i,]
+train <- news.tbl[i,]
+test <- news.tbl[-i,]
 ```
 
 ### Linear Regression
@@ -195,7 +201,7 @@ met <- c(R2 = which.max(backSumm$rsq),
 M <- which.max(tabulate(met))
 ```
 
-The most frequent number is `r M``. The variables present in this size model are:
+The most frequent number is `r M`. The variables present in this size model are:
 
 ```{r coef return}
 coef(backVars, M)
