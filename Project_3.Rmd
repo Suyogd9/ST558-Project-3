@@ -223,15 +223,18 @@ M <- which.max(tabulate(met))
 The most frequent number is `r M`. The variables present in this size model are:
 
 ```{r coef return}
-coef(backVars, M)
+terms <- coef(backVars, M)
+terms
 ```
 
-Now, the model can be trained. The variables are scaled to account for the vastly different magnitudes between them, and to prevent any extreme coefficient values because of this.
+Now, the model can be trained. The coefficient names are grabbed from the backwards selection, and input as a subset of the training data. The variables are scaled to account for the vastly different magnitudes between them, and to prevent any extreme coefficient values because of this.
 
 ```{r reg train}
-BackwardFit <- train(shares ~ n_tokens_content + num_hrefs + num_self_hrefs + num_imgs +
-                     num_videos + is_weekend + global_rate_positive_words + weekday_is_wednesday,
-                    data = train,
+prd <- names(terms)
+prd <- replace(prd, prd %in% c('(Intercept)', 'is_weekend1'), c('shares', 'is_weekend'))
+
+BackwardFit <- train(shares ~ .,
+                    data = train[,prd],
                     method = "lm",
                     metric = "Rsquared",
                     preProcess = c("scale"),
