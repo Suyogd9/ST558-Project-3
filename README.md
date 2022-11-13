@@ -1,3 +1,5 @@
+# "tl;dr the code" Summary
+
 The purpose of this repo is to showcase the process and results of automating Markdown reports containing predictive analysis about shares from articles published by Mashable. There are six categories of articles within the data, each of have their own report. They can be accessed via the links below.
 
 For the code to perform as expected, the following R packages were used and should be installed:
