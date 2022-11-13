@@ -272,6 +272,19 @@ forwardFit <- train(modelFormula,
 summary(forwardFit)
 
 ```
+```{r regressModelPredict, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
+# convert categorical variables into numeric variables i.e one hot encoding
+dummies <- dummyVars(shares ~ is_weekend+popularity, data = test)
+testDF <- as_tibble(predict(dummies, newdata = test)) %>%
+    bind_cols(select(test,-is_weekend,-popularity))
+
+  predLR <- predict(forwardFit,newdata = testDF)
+  
+  predResults <- postResample(predLR,obs = testDF$shares)
+  
+  predResults
+  
+```
 
 This second linear regression model is fit using variables chosen from backwards stepwise selection.
 
@@ -336,6 +349,19 @@ varImp(rfFit$finalModel) %>% arrange(desc(Overall))
 
 ```
 
+```{r rfModelPredict, echo=TRUE, eval=TRUE,warning=FALSE,message=FALSE}
+# convert categorical variables into numeric variables i.e one hot encoding
+dummies <- dummyVars(shares ~ is_weekend+popularity, data = test)
+testDF <- as_tibble(predict(dummies, newdata = test)) %>%
+    bind_cols(select(test,-is_weekend,-popularity))
+
+  predRF <- predict(rfFit,newdata = testDF)
+  
+  predResults <- postResample(predLR,obs = testDF$shares)
+  
+  predResults
+  
+```
 ### Boosted Tree Model
 
 Boosting centers around the idea of sequential learning--taking information from preceding iterations as a basis for calculating the current iteration. Boosted trees are ensemble tree models consisting of a group of trees that are built in sequence, including errors from previous trees for predictions.
