@@ -21,9 +21,10 @@ renderReport <- function(c) {
   title <- getTitle(c)
   
   rmarkdown::render("Project_3.Rmd",
+                    output_format = "github_document",
                     params = list(channel = c,
                                   rep_title = title),
-                    output_file = paste0(title, "Analysis"))
+                    output_file = paste0(title, "Analysis.md"))
   
 }
 
