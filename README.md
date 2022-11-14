@@ -10,11 +10,11 @@ For the code to perform as expected, the following R packages were used and shou
 - [gbm](https://github.com/gbm-developers/gbm#readme) - Needed for `caret` training to recognize `gbm` method
 
 Generated Reports:
-- Lifestyle
-- Entertainment
+- [Lifestyle](LifestyleAnalysis.md)
+- [Entertainment](Entertainment.md)
 - [Business](BusinessAnalysis.md)
-- Social Media
-- Technology
-- World
+- [Social Media](Social_MediaAnalysis.md)
+- [Technology](Technology.md)
+- [World](World.md)
 
 [Render_Script.R](Render_Script.R) - Generates report(s) based on provided value of `channel`
