@@ -11,10 +11,10 @@ For the code to perform as expected, the following R packages were used and shou
 
 Generated Reports:
 - [Lifestyle](LifestyleAnalysis.md)
-- [Entertainment](Entertainment.md)
+- [Entertainment](EntertainmentAnalysis.md)
 - [Business](BusinessAnalysis.md)
 - [Social Media](Social_MediaAnalysis.md)
-- [Technology](Technology.md)
-- [World](World.md)
+- [Technology](TechnologyAnalysis.md)
+- [World](WorldAnalysis.md)
 
 [Render_Script.R](Render_Script.R) - Generates report(s) based on provided value of `channel`
