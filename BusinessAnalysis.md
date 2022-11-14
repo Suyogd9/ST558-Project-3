@@ -419,7 +419,7 @@ modelFormula
     ## shares ~ num_imgs + num_videos + average_token_length + kw_avg_max + 
     ##     kw_avg_min + self_reference_avg_sharess + avg_negative_polarity + 
     ##     n_unique_tokens + popularityUnpopular
-    ## <environment: 0x000002049a084c50>
+    ## <environment: 0x00000204a1994188>
 
 In the code chunk below, firstly we have converted categorical variables
 into numerical variables using `dummyVars()`. `gsub()` is used to rename
