@@ -8,13 +8,14 @@ For the code to perform as expected, the following R packages were used and shou
 - [caret](https://github.com/topepo/caret/) - For training and plotting models for classification and regression problems
 - [leaps](https://www.rdocumentation.org/packages/leaps/versions/3.1/topics/leaps) - For selection of the best subset of predictor variables 
 - [gbm](https://github.com/gbm-developers/gbm#readme) - Needed for `caret` training to recognize `gbm` method
+-[ggcorrplot](https://cran.r-project.org/web/packages/ggcorrplot/readme/README.html) - Need to plot correlation plots with customizations
 
 Generated Reports:
-- [Lifestyle](LifestyleAnalysis.md)
-- [Entertainment](EntertainmentAnalysis.md)
-- [Business](BusinessAnalysis.md)
-- [Social Media](Social_MediaAnalysis.md)
-- [Technology](TechnologyAnalysis.md)
-- [World](WorldAnalysis.md)
+- [Lifestyle](LifestyleAnalysis.html)
+- [Entertainment](EntertainmentAnalysis.html)
+- [Business](BusinessAnalysis.html)
+- [Social Media](Social_MediaAnalysis.html)
+- [Technology](TechnologyAnalysis.html)
+- [World](WorldAnalysis.html)
 
 [Render_Script.R](Render_Script.R) - Generates report(s) based on provided value of `channel`
