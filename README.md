@@ -8,7 +8,7 @@ For the code to perform as expected, the following R packages were used and shou
 - [caret](https://github.com/topepo/caret/) - For training and plotting models for classification and regression problems
 - [leaps](https://www.rdocumentation.org/packages/leaps/versions/3.1/topics/leaps) - For selection of the best subset of predictor variables 
 - [gbm](https://github.com/gbm-developers/gbm#readme) - Needed for `caret` training to recognize `gbm` method
--[ggcorrplot](https://cran.r-project.org/web/packages/ggcorrplot/readme/README.html) - Need to plot correlation plots with customizations
+- [ggcorrplot](https://cran.r-project.org/web/packages/ggcorrplot/readme/README.html) - Need to plot correlation plots with customizations
 
 Generated Reports:
 - [Lifestyle](LifestyleAnalysis.html)
