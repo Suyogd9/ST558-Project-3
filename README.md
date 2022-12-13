@@ -12,10 +12,10 @@ For the code to perform as expected, the following R packages were used and shou
 
 Generated Reports:
 - [Lifestyle](https://suyogd9.github.io/ST558-Project-3/LifestyleAnalysis.html)
-- [Entertainment](EntertainmentAnalysis.html)
-- [Business](BusinessAnalysis.html)
-- [Social Media](Social_MediaAnalysis.html)
-- [Technology](TechnologyAnalysis.html)
-- [World](WorldAnalysis.html)
+- [Entertainment](https://suyogd9.github.io/ST558-Project-3/EntertainmentAnalysis.html)
+- [Business](https://suyogd9.github.io/ST558-Project-3/BusinessAnalysis.html)
+- [Social Media](https://suyogd9.github.io/ST558-Project-3/Social_MediaAnalysis.html)
+- [Technology](https://suyogd9.github.io/ST558-Project-3/TechnologyAnalysis.html)
+- [World](https://suyogd9.github.io/ST558-Project-3/WorldAnalysis.html)
 
 [Render_Script.R](Render_Script.R) - Generates report(s) based on provided value of `channel`
