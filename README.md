@@ -11,7 +11,7 @@ For the code to perform as expected, the following R packages were used and shou
 - [ggcorrplot](https://cran.r-project.org/web/packages/ggcorrplot/readme/README.html) - Need to plot correlation plots with customizations
 
 Generated Reports:
-- [Lifestyle](LifestyleAnalysis.html)
+- [Lifestyle](https://suyogd9.github.io/ST558-Project-3/LifestyleAnalysis.html)
 - [Entertainment](EntertainmentAnalysis.html)
 - [Business](BusinessAnalysis.html)
 - [Social Media](Social_MediaAnalysis.html)
